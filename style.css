@@ -7,5 +7,6 @@ body {
   justify-content: center;
 }
 
-[data-testid="stToolbar"] {visibility: hidden !important;}
-footer {visibility: hidden !important;}
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
