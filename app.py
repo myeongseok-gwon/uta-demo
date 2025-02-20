@@ -38,7 +38,7 @@ with top_bar:
 st.title(f"{selected_brand} Influencer Analysis")
 
 # --- Load CSV Files ---
-appearance_reasons_csv = f"top_100_{selected_brand}_reasons.csv"
+appearance_reasons_csv = f"top_100_{selected_brand}_appearance.csv"
 appearance_reasons_path = os.path.join(DATA_DIR, appearance_reasons_csv)
 
 meta_csv = "top_100.csv"
