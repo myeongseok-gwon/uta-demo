@@ -35,7 +35,7 @@ with top_bar:
     with col1:
         selected_brand = st.selectbox("Select Brand", BRANDS)
     with col2:
-        slider_weight = st.slider("Weight for Appearance Score (remaining for Brand Fit Score)", 0.0, 1.0, 0.5, 0.1)
+        slider_weight = st.slider("Weight for Appearance Score (remaining for Brand Fit Score)", 0.0, 1.0, 0.2, 0.1)
 
 st.title(f"{selected_brand} Influencer Analysis")
 
