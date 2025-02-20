@@ -27,6 +27,8 @@ with top_bar:
         st.image(logo, width=150)
     else:
         st.text("Logo not found")
+
+    st.markdown("<br><br>", unsafe_allow_html=True)
     
     # Create columns for brand selector and weight slider
     col1, col2 = st.columns([2, 3])
@@ -153,4 +155,13 @@ df_display = df_merged[columns].rename(columns=col_rename)
 
 # Generate HTML table (with escape=False to render image HTML)
 html_table = df_display.to_html(escape=False, index=False)
+additional_css = """
+<style>
+    th {
+        text-align: center;
+    }
+</style>
+"""
+html_table = additional_css + html_table
+
 st.markdown(html_table, unsafe_allow_html=True)
