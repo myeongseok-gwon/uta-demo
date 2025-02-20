@@ -5,21 +5,39 @@ import pandas as pd
 from PIL import Image
 
 # --- Settings ---
+st.set_page_config(
+    page_title="Influencer Analysis",
+    layout="wide",         # Wide layout
+    initial_sidebar_state="collapsed"  # Collapse sidebar by default
+)
+
 DATA_DIR = "./"  # Directory for CSV files
 IMAGE_DIR = "./top_100_images"  # Directory for images
+LOGO_PATH = os.path.join(DATA_DIR, "ADOASIS.png")  # Path for the logo image
 
 # List of available brands
-BRANDS = ['lyft', 'redbull', 'kroger', 'sephora', 'nestle', 'lululemon']
+BRANDS = ['Lyft', 'Redbull', 'Kroger', 'Sephora', 'Nestle', 'Lululemon']
 
-# --- Sidebar ---
-selected_brand = st.sidebar.selectbox("Select Brand", BRANDS)
-slider_weight = st.sidebar.slider("Weight for Appearance Score (remaining for Culture Fit)", 0.0, 1.0, 0.5, 0.1)
-show_reason = st.sidebar.checkbox("Show Reason columns", value=False)
+# --- Top Bar UI ---
+top_bar = st.container()
+with top_bar:
+    # Display logo on the top left
+    if os.path.exists(LOGO_PATH):
+        logo = Image.open(LOGO_PATH)
+        st.image(logo, width=150)
+    else:
+        st.text("Logo not found")
+    
+    # Create columns for brand selector and weight slider
+    col1, col2 = st.columns([2, 3])
+    with col1:
+        selected_brand = st.selectbox("Select Brand", BRANDS)
+    with col2:
+        slider_weight = st.slider("Weight for Appearance Score (remaining for Brand Fit Score)", 0.0, 1.0, 0.5, 0.1)
 
-st.title(f"{selected_brand.capitalize()} Influencer Analysis")
+st.title(f"{selected_brand} Influencer Analysis")
 
 # --- Load CSV Files ---
-# Appearance related CSV (score/reason) and metadata
 appearance_reasons_csv = f"top_100_{selected_brand}_reasons.csv"
 appearance_reasons_path = os.path.join(DATA_DIR, appearance_reasons_csv)
 
@@ -54,7 +72,6 @@ if not os.path.exists(culture_path):
     st.stop()
 
 df_culture = pd.read_csv(culture_path)
-# Filter culture data by brand (the pool of brands is the same)
 df_culture = df_culture[df_culture['brand'].str.lower() == selected_brand.lower()]
 
 # Merge appearance data with culture fit data using "influencer" as the key
@@ -84,17 +101,15 @@ def to_int_str(x):
 df_merged['Followers'] = df_merged['last_followers'].apply(to_int_str)
 
 # Calculate total score: total_score = slider_weight * appearance_score + (1 - slider_weight) * culture_fit_score
-# Use float conversion for the calculations (NaN if missing)
 df_merged['appearance_score'] = pd.to_numeric(df_merged['appearance_score'], errors='coerce')
 df_merged['culture_fit_score'] = pd.to_numeric(df_merged['culture_fit_score'], errors='coerce')
-
 df_merged['total_score'] = df_merged.apply(
     lambda row: slider_weight * row['appearance_score'] + (1 - slider_weight) * row['culture_fit_score']
     if pd.notna(row['appearance_score']) and pd.notna(row['culture_fit_score'])
     else None, axis=1
 )
 
-# Sort the entire dataset by total_score in descending order
+# Sort by total_score in descending order
 df_merged.sort_values(by='total_score', ascending=False, inplace=True)
 
 # Format scores to three decimal places
@@ -123,28 +138,19 @@ df_merged['Influencer'] = df_merged.apply(
     axis=1
 )
 
-# Add Category column (assumed to be available in metadata)
-# Set the final columns to display (include reason columns if toggled)
-columns = ['Photo', 'Influencer', 'category', 'Followers', 'appearance_score', 'culture_fit_score', 'total_score']
+# Set final columns to display (including Category and the Reason columns)
+columns = ['Photo', 'Influencer', 'category', 'Followers', 'appearance_score', 'culture_fit_score', 'total_score', 'appearance_reason', 'culture_fit_reason']
 col_rename = {
     'appearance_score': 'Appearance Score',
-    'culture_fit_score': 'Culture Fit Score',
+    'culture_fit_score': 'Brand Fit Score',
     'total_score': 'Total Score',
-    'category': 'Category'
+    'category': 'Category',
+    'appearance_reason': 'Appearance Reason',
+    'culture_fit_reason': 'Brand Fit Reason'
 }
-
-if show_reason:
-    columns += ['appearance_reason', 'culture_fit_reason']
-    col_rename['appearance_reason'] = 'Appearance Reason'
-    col_rename['culture_fit_reason'] = 'Culture Fit Reason'
 
 df_display = df_merged[columns].rename(columns=col_rename)
 
 # Generate HTML table (with escape=False to render image HTML)
 html_table = df_display.to_html(escape=False, index=False)
 st.markdown(html_table, unsafe_allow_html=True)
-
-# # Save the final merged DataFrame as CSV (e.g., merged_redbull.csv)
-# output_csv = f"merged_{selected_brand}.csv"
-# df_merged.to_csv(output_csv, index=False)
-# st.success(f"Final merged DataFrame has been saved as {output_csv}.")
