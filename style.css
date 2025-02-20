@@ -6,3 +6,6 @@ body {
   display: flex;
   justify-content: center;
 }
+
+[data-testid="stToolbar"] {visibility: hidden !important;}
+footer {visibility: hidden !important;}
